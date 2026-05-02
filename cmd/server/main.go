@@ -2,6 +2,7 @@ package main
 
 import (
 	"github.com/trippleflipp/test-task-go/internal/db"
+	"github.com/trippleflipp/test-task-go/internal/handlers"
 
 	"github.com/gin-gonic/gin"
 	"github.com/sirupsen/logrus"
@@ -15,12 +16,20 @@ func main() {
 	database := db.InitDB()
 	defer database.Close()
 
+	h := handlers.NewSubscriptionHandler(database, log)
+
 	r := gin.Default()
 
-	r.GET("/ping", func(ctx *gin.Context) {
-		log.Info("GET/ping")
-		ctx.JSON(200, gin.H{"message": "pong"})
-	})
+	api := r.Group("/api")
+	{
+		api.POST("/subscriptions", h.Create)
+		api.PUT("/subscriptions/:id", h.Update)
+		api.GET("/subscriptions", h.List)
+		api.GET("/subscriptions/:id", h.GetByID)
+		api.DELETE("/subscriptions/:id", h.Delete)
+
+		api.GET("/subscriptions/total", h.GetTotal)
+	}
 
 	log.Info("Server started on :8080")
 	if err := r.Run(":8080"); err != nil {
