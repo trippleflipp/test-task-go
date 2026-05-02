@@ -3,6 +3,7 @@ package handlers
 import (
 	"fmt"
 	"net/http"
+	"time"
 
 	"github.com/gin-gonic/gin"
 	"github.com/jmoiron/sqlx"
@@ -39,7 +40,10 @@ func (h *SubscriptionHandler) Create(c *gin.Context) {
 		return
 	}
 
-	h.Logger.WithFields(logrus.Fields{"id": sub.ID, "user_id": sub.UserID}).Info("Subscription created")
+	h.Logger.WithFields(logrus.Fields{
+		"id":      sub.ID,
+		"user_id": sub.UserID,
+	}).Info("Subscription created")
 	c.JSON(http.StatusCreated, sub)
 }
 
@@ -102,6 +106,8 @@ func (h *SubscriptionHandler) GetByID(c *gin.Context) {
 func (h *SubscriptionHandler) GetTotal(c *gin.Context) {
 	userID := c.Query("user_id")
 	serviceName := c.Query("service_name")
+	from := c.Query("from")
+	to := c.Query("to")
 
 	query := `SELECT COALESCE(SUM(price), 0) FROM subscriptions WHERE 1=1`
 	var args []any
@@ -116,6 +122,22 @@ func (h *SubscriptionHandler) GetTotal(c *gin.Context) {
 		query += fmt.Sprintf(" AND service_name = $%d", argCount)
 		args = append(args, serviceName)
 	}
+	if from != "" {
+		t, err := time.Parse("01-2006", from)
+		if err == nil {
+			query += fmt.Sprintf(" AND start_date >= $%d", argCount)
+			args = append(args, t.Format("2006-01-02"))
+			argCount++
+		}
+	}
+	if to != "" {
+		t, err := time.Parse("01-2006", to)
+		if err == nil {
+			query += fmt.Sprintf(" AND start_date <= $%d", argCount)
+			args = append(args, t.Format("2006-01-02"))
+			argCount++
+		}
+	}
 
 	var total int
 	if err := h.DB.Get(&total, query, args...); err != nil {
@@ -124,6 +146,10 @@ func (h *SubscriptionHandler) GetTotal(c *gin.Context) {
 		return
 	}
 
+	h.Logger.WithFields(logrus.Fields{
+		"user_id": userID,
+		"total":   total,
+	}).Info("Total cost calculated")
 	c.JSON(http.StatusOK, gin.H{"total_cost": total})
 }
 
