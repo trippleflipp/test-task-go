@@ -15,3 +15,7 @@ type Subscription struct {
 	EndDate     *time.Time `db:"end_date" json:"end_date,omitempty"`
 	CreatedAt   time.Time  `db:"created_at" json:"created_at"`
 }
+
+type TotalCostResponse struct {
+	TotalCost int `json:"total_cost"`
+}
