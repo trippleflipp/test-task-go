@@ -18,6 +18,7 @@ RUN apk add --no-cache libc6-compat
 COPY --from=builder /app/main .
 COPY --from=builder /app/.env .
 COPY --from=builder /app/migrations ./migrations
+COPY --from=builder /app/docs ./docs
 
 RUN chmod +x ./main
 

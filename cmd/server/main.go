@@ -1,11 +1,19 @@
+// @title           Subscription Service API
+// @version         1.0
+// @description     Subscription Management
+// @host            localhost:8080
+// @BasePath        /
 package main
 
 import (
+	_ "github.com/trippleflipp/test-task-go/docs"
 	"github.com/trippleflipp/test-task-go/internal/db"
 	"github.com/trippleflipp/test-task-go/internal/handlers"
 
 	"github.com/gin-gonic/gin"
 	"github.com/sirupsen/logrus"
+	swaggerFiles "github.com/swaggo/files"
+	ginSwagger "github.com/swaggo/gin-swagger"
 )
 
 func main() {
@@ -19,6 +27,8 @@ func main() {
 	h := handlers.NewSubscriptionHandler(database, log)
 
 	r := gin.Default()
+
+	r.GET("swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 
 	api := r.Group("/api")
 	{

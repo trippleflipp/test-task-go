@@ -20,6 +20,16 @@ func NewSubscriptionHandler(db *sqlx.DB, logger *logrus.Logger) *SubscriptionHan
 	return &SubscriptionHandler{DB: db, Logger: logger}
 }
 
+// Create godoc
+// @Summary      Создать подписку
+// @Description  Добавляет новую запись о подписке в базу данных
+// @Tags         subscriptions
+// @Accept       json
+// @Produce      json
+// @Param        input body models.Subscription true "Данные подписки"
+// @Success      201 {object} models.Subscription
+// @Failure      400 {object} map[string]string
+// @Router       /api/subscriptions [post]
 func (h *SubscriptionHandler) Create(c *gin.Context) {
 	var sub models.Subscription
 	if err := c.ShouldBindJSON(&sub); err != nil {
@@ -47,6 +57,18 @@ func (h *SubscriptionHandler) Create(c *gin.Context) {
 	c.JSON(http.StatusCreated, sub)
 }
 
+// Update godoc
+// @Summary      Обновить подписку
+// @Description  Обновляет данные существующей подписки по её ID
+// @Tags         subscriptions
+// @Accept       json
+// @Produce      json
+// @Param        id    path      int                  true  "ID подписки"
+// @Param        input body      models.Subscription  true  "Новые данные подписки"
+// @Success      200   {object}  map[string]string
+// @Failure      400   {object}  map[string]string
+// @Failure      404   {object}  map[string]string
+// @Router       /api/subscriptions/{id} [put]
 func (h *SubscriptionHandler) Update(c *gin.Context) {
 	id := c.Param("id")
 	var sub models.Subscription
@@ -78,6 +100,13 @@ func (h *SubscriptionHandler) Update(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"status": "OK"})
 }
 
+// List godoc
+// @Summary      Список всех подписок
+// @Description  Возвращает список всех оформленных подписок
+// @Tags         subscriptions
+// @Produce      json
+// @Success      200 {array} models.Subscription
+// @Router       /api/subscriptions [get]
 func (h *SubscriptionHandler) List(c *gin.Context) {
 	var subs []models.Subscription
 	err := h.DB.Select(&subs, "SELECT * FROM subscriptions ORDER BY created_at DESC")
@@ -89,6 +118,15 @@ func (h *SubscriptionHandler) List(c *gin.Context) {
 	c.JSON(http.StatusOK, subs)
 }
 
+// GetByID godoc
+// @Summary      Получить подписку по ID
+// @Description  Возвращает полную информацию об одной подписке
+// @Tags         subscriptions
+// @Produce      json
+// @Param        id   path      int  true  "ID подписки"
+// @Success      200  {object}  models.Subscription
+// @Failure      404  {object}  map[string]string
+// @Router       /api/subscriptions/{id} [get]
 func (h *SubscriptionHandler) GetByID(c *gin.Context) {
 	id := c.Param("id")
 	var sub models.Subscription
@@ -103,6 +141,17 @@ func (h *SubscriptionHandler) GetByID(c *gin.Context) {
 	c.JSON(http.StatusOK, sub)
 }
 
+// GetTotal godoc
+// @Summary      Рассчитать общую стоимость
+// @Description  Возвращает сумму цен подписок с фильтрацией по пользователю, сервису и датам
+// @Tags         subscriptions
+// @Produce      json
+// @Param        user_id      query    string  false  "UUID пользователя"
+// @Param        service_name query    string  false  "Название сервиса"
+// @Param        from        query    string  false  "Дата от (MM-YYYY)"
+// @Param        to          query    string  false  "Дата до (MM-YYYY)"
+// @Success      200 {object} map[string]int
+// @Router       /api/subscriptions/total [get]
 func (h *SubscriptionHandler) GetTotal(c *gin.Context) {
 	userID := c.Query("user_id")
 	serviceName := c.Query("service_name")
@@ -153,6 +202,14 @@ func (h *SubscriptionHandler) GetTotal(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"total_cost": total})
 }
 
+// Delete godoc
+// @Summary      Удалить подписку
+// @Description  Удаляет запись о подписке из базы данных по ID
+// @Tags         subscriptions
+// @Param        id   path      int  true  "ID подписки"
+// @Success      204  "No Content"
+// @Failure      404  {object}  map[string]string
+// @Router       /api/subscriptions/{id} [delete]
 func (h *SubscriptionHandler) Delete(c *gin.Context) {
 	id := c.Param("id")
 	res, err := h.DB.Exec("DELETE FROM subscriptions WHERE id = $1", id)
