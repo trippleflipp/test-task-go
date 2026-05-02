@@ -1,7 +1,11 @@
-version: '3.8'
 services:
   db:
     image: postgres:16-alpine
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER} -d ${DB_NAME}"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
     container_name: postgres
     environment:
       POSTGRES_USER: ${DB_USER}
@@ -20,7 +24,8 @@ services:
     env_file:
       - .env
     depends_on:
-      - db
+      db:
+        condition: service_healthy
 
 volumes:
   postgres_data:
