@@ -13,24 +13,24 @@ type CustomDate struct {
 	time.Time
 }
 
-const DateFormat = "01-2001"
+const DateFormat = "01-2006"
 
-// ParseJSON парсит "07-2025" из запроса
-func (cd *CustomDate) ParseJSON(b []byte) error {
+// UnmarshallJSON парсит "07-2025" из запроса
+func (cd *CustomDate) UnmarshalJSON(b []byte) error {
 	s := strings.Trim(string(b), "\"")
 	if s == "null" || s == "" {
 		return nil
 	}
 	t, err := time.Parse(DateFormat, s)
 	if err != nil {
-		return err
+		return fmt.Errorf("invalid date format, expected MM-YYYY: %v", err)
 	}
 	cd.Time = t
 	return nil
 }
 
-// FormatJSON отдает "01-2001" в ответе
-func (cd CustomDate) FormatJSON() ([]byte, error) {
+// MarshallJSON отдает "01-2001" в ответе
+func (cd CustomDate) MarshalJSON() ([]byte, error) {
 	if cd.IsZero() {
 		return []byte("null"), nil
 	}
@@ -59,13 +59,13 @@ func (cd *CustomDate) Scan(value interface{}) error {
 }
 
 type Subscription struct {
-	ID          int        `db:"id" json:"id"`
-	ServiceName string     `db:"service_name" json:"service_name" binding:"required"`
-	Price       int        `db:"price" json:"price" binding:"required"`
-	UserID      uuid.UUID  `db:"user_id" json:"user_id" binding:"required"`
-	StartDate   time.Time  `db:"start_date" json:"start_date" binding:"required"`
-	EndDate     *time.Time `db:"end_date" json:"end_date,omitempty"`
-	CreatedAt   time.Time  `db:"created_at" json:"created_at"`
+	ID          int         `db:"id" json:"id"`
+	ServiceName string      `db:"service_name" json:"service_name" binding:"required"`
+	Price       int         `db:"price" json:"price" binding:"required"`
+	UserID      uuid.UUID   `db:"user_id" json:"user_id" binding:"required"`
+	StartDate   CustomDate  `db:"start_date" json:"start_date" binding:"required" time_format:"2006-01-02"`
+	EndDate     *CustomDate `db:"end_date" json:"end_date" time_format:"2006-01-02"`
+	CreatedAt   time.Time   `db:"created_at" json:"created_at"`
 }
 
 type TotalCostResponse struct {
