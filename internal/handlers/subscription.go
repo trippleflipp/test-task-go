@@ -131,7 +131,7 @@ func (h *SubscriptionHandler) GetByID(c *gin.Context) {
 	id := c.Param("id")
 	var sub models.Subscription
 
-	err := h.DB.Get(&sub, "SELECT * FROM subscription WHERE id = $1", id)
+	err := h.DB.Get(&sub, "SELECT * FROM subscriptions WHERE id = $1", id)
 	if err != nil {
 		h.Logger.WithError(err).Warnf("Subscription %s not found", id)
 		c.JSON(http.StatusNotFound, gin.H{"error": "Subscription not found"})
