@@ -38,7 +38,7 @@ cp .env.example .env
 ```
 3. **Запустите проект**
 ```bash
-docker compose up --build
+sudo docker compose up --build
 ```
 
 Сервис будет доступен по адресу http://localhost:8080.
